@@ -33,7 +33,7 @@ DELIMITER ;
 
 insert into pedidos (NomeCliente) values ('Candida');
 ```
-![image](https://github.com/AndreFelipefer/Trigger/assets/129207232/86bc2bfd-2c72-4618-a423-2e634d0b03c5)
+
 
 Comentario sobre o TRIGGER : O trigger criado conforme modelo citado acima, ele define um procedimento que é pré setado para realizar um determinado comando de acordo com o insert criado na qual ele preenche de forma automatica o campo DataPedido ?
 
@@ -81,7 +81,49 @@ INSERT INTO Filmes (titulo, minutos) VALUES ("O labirinto do fauno", 110);
 INSERT INTO Filmes (titulo, minutos) VALUES ("Metropole", 0);
 INSERT INTO Filmes (titulo, minutos) VALUES ("A lista", 120);
 ```
-![image](https://github.com/AndreFelipefer/Trigger/assets/129207232/7280ce36-306e-48a7-8a18-392e64e6edd1)
+## Trigger Chk_minutos
+```SQL
+DELIMITER $
+-- Criação do Trigger
+CREATE TRIGGER chk_minutos BEFORE INSERT ON Filmes
+FOR EACH ROW
+BEGIN
+    DECLARE custom_message VARCHAR(255);
+
+    IF new.minutos <= 0 THEN
+        -- Atribuir a mensagem de erro personalizada à variável
+        SET custom_message = "Valor inválido para minutos";
+
+        -- Lançar um Erro com mensagem personalizada e código de erro
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = custom_message;
+    END IF;
+END$
+-- Restauração do Delimitador Padrão
+DELIMITER ;
+```
+
+### Trigger log_deletions
+```SQL
+create table Log_deletions (
+id int primary key not null auto_increment,
+titulo varchar(60),
+quando datetime,
+quem varchar(40)
+);
+
+delimiter $
+create trigger log_deletions after delete on Filmes
+	for each row 
+    begin
+		insert into log_deletions values (null, old.titulo, sysdate(), user());
+	end$
+delimiter ;
+
+delete from filmes where id = 2;
+delete from filmes where id = 3;
+
+select * from log_deletions;
+```
 
 ### Conforme imagem ele pré setou as menor que 0 como NULL
 
@@ -92,6 +134,16 @@ INSERT INTO Filmes (titulo, minutos) VALUES ("A lista", 120);
 ### Resultado Table Filmes - 
 
 ![image](https://github.com/AndreFelipefer/Trigger/assets/129207232/06c147bf-b342-41d7-beaa-f20e7c83ca80)
+
+### Trigger Chk_Minutos
+
+![image](https://github.com/AndreFelipefer/Trigger/assets/129207232/a8624c74-fd26-4e99-a016-fc5e13cec2f8)
+
+### Trigger log_deletions
+
+![image](https://github.com/AndreFelipefer/Trigger/assets/129207232/03ca815a-b69f-4c2f-abb6-fd78e64a1b1b)
+
+
 
 # That's ALL
 
