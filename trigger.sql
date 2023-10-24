@@ -69,3 +69,49 @@ INSERT INTO Filmes (titulo, minutos) VALUES ("A lista", 120);
 
 select * from Filmes;
 
+-- Definição do Delimitador
+DELIMITER $
+-- Criação do Trigger
+CREATE TRIGGER chk_minutos BEFORE INSERT ON Filmes
+FOR EACH ROW
+BEGIN
+    DECLARE custom_message VARCHAR(255);
+
+    IF new.minutos <= 0 THEN
+        -- Atribuir a mensagem de erro personalizada à variável
+        SET custom_message = "Valor inválido para minutos";
+
+        -- Lançar um Erro com mensagem personalizada e código de erro
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = custom_message;
+    END IF;
+END$
+-- Restauração do Delimitador Padrão
+DELIMITER ;
+
+insert into filmes (titulo, minutos) values ('Arca de Noé', 0);
+
+select * from filmes;
+
+create table Log_deletions (
+id int primary key not null auto_increment,
+titulo varchar(60),
+quando datetime,
+quem varchar(40)
+);
+
+delimiter $
+create trigger log_deletions after delete on Filmes
+	for each row 
+    begin
+		insert into log_deletions values (null, old.titulo, sysdate(), user());
+	end$
+delimiter ;
+
+delete from filmes where id = 2;
+delete from filmes where id = 3;
+
+select * from log_deletions;
+
+
+
+
